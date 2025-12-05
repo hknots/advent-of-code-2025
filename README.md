@@ -4,7 +4,7 @@ My solutions for the [Advent of Code 2025](https://adventofcode.com/2025) challe
 
 ## 📋 Requirements
 
-* [Go](https://go.dev/dl/) (1.23 or higher recommended)
+* [Go](https://go.dev/dl/) (1.21 or higher recommended)
 
 ## 🚀 How to Run
 
