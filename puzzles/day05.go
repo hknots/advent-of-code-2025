@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -19,11 +20,9 @@ type freshRange struct {
 
 // TODO: Determine if we should handle error handling here or in main.go
 
-// SolveDay05 Answers how many fresh fruits there are
+// SolveDay05 Answers how many fresh fruits there are and how many unique fresh ids there are
 // Ref: https://adventofcode.com/2025/day/5
 func SolveDay05(file *os.File) {
-	var result int
-
 	scanner := bufio.NewScanner(file)
 	freshFruits := make([]int, 0, 100)
 	freshRanges := make([]freshRange, 0, 100)
@@ -34,6 +33,7 @@ func SolveDay05(file *os.File) {
 
 		if line == "" { // Empty whitespace to split freshRanges and values
 			scanningRanges = false
+			freshRanges = mergeFreshRanges(freshRanges)
 			continue
 		}
 
@@ -74,8 +74,31 @@ func SolveDay05(file *os.File) {
 		return
 	}
 
-	result = len(freshFruits)
-	fmt.Printf("The number of fresh fruits: %d\n", result)
+	fmt.Printf("The number of fresh fruits: %d\n", len(freshFruits))
+	fmt.Printf("The frequency of fresh fruit ids are: %d\n", calculateIdFrequency(freshRanges))
+}
+
+// mergeFreshRanges merges freshRange's based on their overlapping values
+func mergeFreshRanges(frs []freshRange) []freshRange {
+	mergedFreshRanges := make([]freshRange, 0, 50)
+
+	sort.Slice(frs, func(i, j int) bool {
+		return frs[i].Min < frs[j].Min
+	})
+
+	current := frs[0]
+
+	for _, next := range frs[1:] {
+		if next.Min <= current.Max+1 { // + 1 to include adjacent (e.g., 1-3 and 4-6 should merge to 1-6)
+			current.Max = max(current.Max, next.Max)
+		} else {
+			mergedFreshRanges = append(mergedFreshRanges, current)
+			current = next
+		}
+	}
+
+	// Append the final excluded range
+	return append(mergedFreshRanges, current)
 }
 
 func createFreshRange(parts []string) (freshRange, error) {
@@ -93,4 +116,14 @@ func createFreshRange(parts []string) (freshRange, error) {
 		Min: minValue,
 		Max: maxValue,
 	}, nil
+}
+
+func calculateIdFrequency(frs []freshRange) int {
+	var count int
+
+	for _, fr := range frs {
+		count += (fr.Max - fr.Min) + 1 // + 1 to include starting id
+	}
+
+	return count
 }
